@@ -45,21 +45,19 @@
 				
 			</form>
 	</body>
-	
 	<?php
-		//establish connection with the MySQL database
-		$db_connection = mysql_connect("localhost", "cs143", "");
-		
-		//choose database to use
-		mysql_select_db("CS143", $db_connection);
 
-		//get the user's inputs
+		$db= mysql_connect("localhost", "cs143", "");
+		mysql_select_db("CS143", $db);
 		$job=$_GET["job"];
-		$first=trim($_GET["first"]);
-		$last=trim($_GET["last"]);
+		$first=mysqli_escape_string(trim($_GET["first"]));
+		$last=mysqli_escape_string(trim($_GET["last"]));
 		$gender=$_GET["gender"];
 		$dob = date_parse(trim($_GET["dob"]));
 		$dod= date_parse(trim($_GET["dod"]));
+		$maxid=mysql_query("SELECT id FROM MaxPersonID",$db);
+		echo $maxid;
+		
 		if($job=="")
 			echo "You must select Actor or Director.";
 		else if(!preg_match('/^[A-Za-z\.\-\']+$/',$first) || !preg_match('/^[A-Za-z\.\-\']+$/',$last)) //name must be composed of alphabetical char and -,.,' 
@@ -71,6 +69,18 @@
 		else if($dod!="" && !checkdate($dod["month"], $dod["day"], $dod["year"]))
 			echo "Invalid date of death.";
 		else{ // tentative valid input
+			if($job=="Director"){
+				if($dod=="")
+					$tuple="INSERT INTO Director VALUES('$id','$last','$first','$dob',NULL)";
+				else
+					$tuple="INSERT INTO Director VALUES('$id','$last','$first','$dob','$dod')";
+			}
+			else
+				if($dod=="")
+					$tuple="INSERT INTO Director VALUES('$id','$last','$first','$gender','$dob',NULL)";
+				else
+					$tuple="INSERT INTO Director VALUES('$id','$last','$first','$gender','$dob','$dod')";
 		}
+		$result = mysql_query
 	?>
 </html>
