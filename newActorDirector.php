@@ -56,15 +56,14 @@
 		$first=mysqli_real_escape_string($db, trim($_GET["first"]));
 		$last=mysqli_real_escape_string($db, trim($_GET["last"]));
 		$gender=$_GET["Gender"];
-		$dob =trim($_GET["dob"]);
+		$dob =$_GET["dob"];
 		$checkdob = date_parse($dob);
-		$dod = trim($_GET["dod"]);
-		$checkdod= date_parse();
+		$dod = $_GET["dod"];
+		$checkdod= date_parse($dod);
 		$maxid=mysqli_fetch_array(mysqli_query($db,"SELECT id FROM MaxPersonID"))[0];
 		if(!$maxid)
 			echo "Query failed.";
 		$newid=$maxid+1;
-		echo "$newid";
 		if($job=="")
 			echo "You must select Actor or Director.";
 		else if(!preg_match('/^[A-Za-z\.\-\']+$/',$first) || !preg_match('/^[A-Za-z\.\-\']+$/',$last)) //name must be composed of alphabetical char and -,.,' 
@@ -87,15 +86,13 @@
 					$tuple="INSERT INTO Actor VALUES('$newid','$last','$first','$gender','$dob',NULL)";
 				else{
 					$tuple="INSERT INTO Actor VALUES('$newid','$last','$first','$gender','$dob','$dod')";
-					echo "I'm here!";
 				}
 			}
 			if(mysqli_query($db,$tuple)){
-				//echo ("Error: ".mysqli_error($db));
 				while(!mysqli_query($db,"UPDATE MaxPersonID SET id='$newid' WHERE TRUE" ));
 			}
 			$maxid=mysqli_fetch_array(mysqli_query($db,"SELECT id FROM MaxPersonID"))[0];
-			echo "$maxid";
+			//echo "$maxid";
 		}
 		
 	?>
