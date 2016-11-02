@@ -98,6 +98,7 @@
 										if($row['title']!= "")
 								    	echo "<option value = '{$row['id']}'> {$row['title']} </option>";
 								}
+								mysql_free_result($query);
 					  	?>
 					  </select>
 					</div>
@@ -121,12 +122,13 @@
 											echo "<option value = '{$row['id']}'> $name </option>";
 										}	
 								}
+									mysql_free_result($query);
 					  	?>
 					  </select>
 					</div>
 			  <div class="input-group">
-			    <label for="role">Role:</label>
-			    <input type="text" class="form-control" name="role" maxlength="20">
+			    <label for="reviewer">Role:</label>
+			    <input type="text" class="form-control" name="reviewer" maxlength="20">
 			  </div>
 			  <br>
 				<input type="submit"  class="btn btn-default" value="Submit"/>
@@ -155,5 +157,6 @@
 			if(!mysqli_query($db,$tuple))
 				echo "Failed to update table";
 		}	
+		mysql_close($db);
 	?>
 </html>

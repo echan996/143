@@ -100,6 +100,7 @@
 										if($row['title']!= "")
 								    	echo "<option value = '{$row['id']}'> {$row['title']} </option>";
 								}
+								mysql_free_result($query);
 					  	?>
 					  </select>
 					</div>
@@ -148,6 +149,6 @@
 		if(!mysqli_query($db,$tuple))
 			echo "Failed to update table";
 		
-		
+			mysql_close($db);
 	?>
 </html>

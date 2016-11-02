@@ -162,6 +162,6 @@
 				while(!mysqli_query($db,"UPDATE MaxPersonID SET id='$newid' WHERE TRUE" ));
 			}
 		}
-		
+		mysql_close($db);
 	?>
 </html>
