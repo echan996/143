@@ -29,4 +29,6 @@
 			<a href="search.php">Search</a>
 		</tr>
 		<br>
-	</table>
+	</table
+	
+	

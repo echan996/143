@@ -101,58 +101,52 @@
 				<br>
 			</table>
 		</nav>
-	<div class="main">
-	<form action="search.php" method="GET">
-		<input type="text" name="query">
-		<input type="submit" value="Submit">
-	</form>
-	<?php if($_GET["query"]=="") exit();?>
-	<table id="t1" align="left">
-		
-		<tr>
-			<th>Movie Name</th>
-			<th>Year</th>
-		</tr>
+	<div class='main'>
 		<?php
-			
 			$db= mysqli_connect("localhost", "cs143", "");
 			if(!$db)
 				die("Unable to connect to database.");
 			if(!mysqli_select_db($db,"CS143"))
 				die("Unable to select DB.");
-			$query = mysqli_real_escape_string($db, trim($_GET["query"]));
-			
-			$query_terms=explode(' ',$query);
-			if(count($query_terms)>0){
-				//get movie matches
-				$mysql_req = "SELECT id, year, title FROM Movie WHERE title LIKE '%$query_terms[0]%'";
-				for($i=1;$i<count($query_terms);$i++){
-					$mysql_req.=" AND title LIKE '%$query_terms[$i]%'";
-				}
-				$query_result = mysqli_query($db,$mysql_req);
-				while($row=mysqli_fetch_assoc($query_result))
-					echo "<tr><td> <a href=\"showMovieInfo.php?id=".$row['id']."\"".">".$row['title']."</a>	</td><td>".$row['year']."</td></tr>";
+			$aid = $_GET["id"];
+			$mysql_req="SELECT * FROM Actor WHERE id='$aid'";
+			$row = mysqli_fetch_assoc(mysqli_query($db,$mysql_req));
+			if($row==NULL){
+				echo "<h3>Error Actor not found in database.</h3>";
+				exit();
 			}
 		?>
-	</table>
-	<br><br>
-	<table id ="t1" align="left">
-		<tr>
-			<th>Actor Name</th>
-			<th>Date of Birth</th>
-		</tr>
-		<?php
-		if(count($query_terms)>0){
-				//get actor matches
-				$mysql_req = "SELECT id, dob, last, first FROM Actor WHERE (first LIKE '%$query_terms[0]%' OR last LIKE '%$query_terms[0]%')";
-				for($i=1;$i<count($query_terms);$i++){
-					$mysql_req.=" AND (first LIKE '%$query_terms[$i]%' OR last LIKE '%$query_terms[$i]%')";
-				}
-				$query_result = mysqli_query($db,$mysql_req);
-				while($row=mysqli_fetch_assoc($query_result))
-					echo "<tr><td> <a href=\"showActorInfo.php?id=".$row['id']."\"".">".$row['first']." ".$row['last']."</a></td><td>".$row['dob']."</td></tr>";
-			}
-		?>
-	</table>
+		<h4>Actor Information</h4>
+		<table id='t1'>
+			<tr>
+				<th>Name</th>
+				<th>Sex</th>
+				<th>Date of Birth</th>
+				<th>Date of Death</th>
+			</tr>
+			<tr>
+				<td><?php echo $row["first"]." ".$row["last"]; ?></td>
+				<td><?php echo $row["sex"];?></td>
+				<td><?php echo $row["dob"]; ?></td>
+				<td><?php if($row["dod"]==NULL) echo "Still Living"; else echo $row["dod"]; ?></td>
+			</tr>
+		
+		</table>
+		<table id ='t1'>
+			<tr>
+				<th>Role</th>
+				<th>Movie</th>
+			</tr>
+			<br><br>
+			<tr>
+				<?php
+					$mysql_rq = "SELECT role, title FROM MovieActor MA, Movie M WHERE MA.aid='$aid' AND MA.mid=M.id";
+					$query = mysqli_query($db,$mysql_rq);
+					while($row = mysqli_fetch_assoc($query)){
+						echo "<tr><td>{$row['role']}</td><td>{$row['title']}</td></tr>";
+					}
+				?>
+			</tr>
+		</table>
 	</div>
 </html>
