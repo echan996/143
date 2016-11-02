@@ -135,12 +135,11 @@
 			die("Unable to select DB.");
 		
 		$name = mysqli_real_escape_string($db, trim($_GET["reviewer"]));
-		$time = time();
 		$mid = $_GET["sel1"];
 		$rating = $_GET["sel2"];
 		$comment = mysqli_real_escape_string($db, trim($_GET["comment"]));
 
-		$query = "INSERT INTO Review VALUES ('$name', '$time', '$mid', '$rating', '$comment')";
+		$query = "INSERT INTO Review VALUES ('$name', now() , '$mid', '$rating', '$comment')";
 		if(mysqli_query($db, $query))
 				echo "Failed to update table";
 	?>
