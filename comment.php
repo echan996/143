@@ -117,7 +117,7 @@
 			  	</div>
 			  	<div class="input-group">
 			  			<label for="comment">Comment: </label>
-			  		<textarea class = "form-control" name = "comment" rows = "5"></textarea>
+			  		<textarea class = "form-control" name = "comment" rows = "5" maxlength="500"></textarea>
 			  	</div>
 			  <input type="submit"  class="btn btn-default" value="Submit"/>
 			 </form>
