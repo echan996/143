@@ -132,18 +132,19 @@
 			</tr>
 		
 		</table>
+		<br><br>
 		<table id ='t1'>
 			<tr>
 				<th>Role</th>
 				<th>Movie</th>
 			</tr>
-			<br><br>
+
 			<tr>
 				<?php
-					$mysql_rq = "SELECT role, title FROM MovieActor MA, Movie M WHERE MA.aid='$aid' AND MA.mid=M.id";
+					$mysql_rq = "SELECT role, title, id FROM MovieActor MA, Movie M WHERE MA.aid='$aid' AND MA.mid=M.id";
 					$query = mysqli_query($db,$mysql_rq);
 					while($row = mysqli_fetch_assoc($query)){
-						echo "<tr><td>{$row['role']}</td><td>{$row['title']}</td></tr>";
+						echo "<tr><td>{$row['role']}</td><td><a href=\"showMovieInfo.php?id=".$row['id']."\"".">".$row['title']."</a></td></tr>";
 					}
 				?>
 			</tr>

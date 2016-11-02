@@ -79,9 +79,10 @@
 		</nav>
 
 
-		<h3>Add Movie/Director Association</h3>
+
 
 		<form action="./DirectorToMovie.php" method="GET">
+				<h3>Add Movie/Director Association</h3>
 					<div class="input-group">
 					  <label for="sel1">Movie:</label>
 					  <select class="form-control" name="sel1">
