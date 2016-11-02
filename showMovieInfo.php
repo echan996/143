@@ -135,8 +135,10 @@
 				<td><?php 
 						$mysql_rq="SELECT genre FROM MovieGenre M WHERE M.mid='$mid'";
 						$query=mysqli_query($db,$mysql_rq);
-						$row=mysqli_fetch_assoc($query);
-						echo $row[genre];
+						$genres="";
+						while($row=mysqli_fetch_assoc($query))
+							$genres.=$row['genre'];
+						echo $genres;
 					?></td>
 				<td><?php 
 						$mysql_rq="SELECT first, last FROM MovieDirector MA , Director D WHERE MA.mid='$mid' AND MA.did=D.id";
