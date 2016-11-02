@@ -39,6 +39,7 @@
     	}
     </style>
 	</head>
+<<<<<<< HEAD
 
 	<body BGCOLOR="lightgrey">
 		<nav class="navbar navbar-inverse navbar-fixed-top">
@@ -145,3 +146,33 @@
 				echo "Failed to update table";
 	?>
 </html>
+=======
+	<table>
+		<tr>
+			<a href="newActorDirector.php">Add Actor/Director</a>
+		</tr>
+		<br>
+		<tr>
+			<a href="movieInfo.php">Add Movie Information</a>
+		</tr>
+		<br>
+		<tr>
+			<a href="comment.php">Add Comment</a>
+		</tr>
+		<br>
+		<tr>
+			<a href="ActorToMovie.php">Add Actor/Movie Association</a>
+		</tr>
+		<br>
+		<tr>
+			<a href="DirectorToMovie.php">Add Director/Movie Association</a>
+		</tr>
+		<br>
+		<tr>
+			<a href="search.php">Search</a>
+		</tr>
+		<br>
+	</table
+	
+	
+>>>>>>> ae8aadf8107ab2e9905ebda245ef8ee1258d0037
