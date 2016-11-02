@@ -107,6 +107,8 @@
 	</body>
 
 	<?php
+		if($year_string == "" || $title == "" || $rating == "" || $company == "" || $genre == "")
+			exit();
 		$db= mysqli_connect("localhost", "cs143", "");
 		if(!$db)
 			die("Unable to connect to database.");
