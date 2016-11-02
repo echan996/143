@@ -175,12 +175,13 @@
 			echo "Rated $average/5 over $row[1] reviews";
 		?>
 		<br><br>
-		<h3><b>Review</b><h3>
+		<h3><b>Review</b></h3>
 		<?php
-			$mysql_rq="SELECT time, name, rating, comment FROM Review WHERE '$mid'=mid ORDER BY time DESC";
+			$mysql_rq="SELECT * FROM Review WHERE '$mid'=mid ORDER BY time DESC";
 			$query=mysqli_query($db,$mysql_rq);
-			while($row=mysql_fetch_assoc($query)){
-				echo $row['rating']."/5: ".$row['name']."    ".$row['time']."<br>".$row['comment'];
+			
+			while($row=mysqli_fetch_assoc($query)){
+				echo "<b>{$row['name']}</b> left a review at {$row['time']} for <b>{$row['rating']}/5</b>. <br> {$row['comment']}";
 			}
 		?>
 	</div>
