@@ -1,54 +1,119 @@
 
 <html>
-	<head>
+		<head>
 		<title>Query System</title>
-		<br>
-		<center><h1>Query System</h1></center>
-	</head>
-	<table>
-		<tr>
-			<a href="newActorDirector.php">Add Actor/Director</a>
-		</tr>
-		<br>
-		<tr>
-			<a href="movieInfo.php">Add Movie Information</a>
-		</tr>
-		<br>
-		<tr>
-			<a href="comment.php">Add Comment</a>
-		</tr>
-		<br>
-		<tr>
-			<a href="ActorToMovie.php">Add Actor/Movie Association</a>
-		</tr>
-		<br>
-		<tr>
-			<a href="DirectorToMovie.php">Add Director/Movie Association</a>
-		</tr>
-		<br>
-		<tr>
-			<a href="search.php">Search</a>
-		</tr>
-		<br>
-	</table>
+			<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	  <!-- Latest compiled and minified JavaScript -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	
+    
+    <style>
+    	#title {
+    		padding-top: .75%;
+    		color: white;
+    		font-size: 140%;
+    	}
+    	.navbar-fixed-top{
+    		height: 3%;
+    	}
+    	.navbar-left {
+    		padding-top: 3%;
+    		height:100%; 
+    		width: 15%;
+    		background-color: rgb(238, 238, 238);
+    		margin-right: 1%;
+    	}
+    	.main {
+    		padding: 3%;
+    	}
+    	body{
+    		overflow-y: hidden; 
+    	}
+    	table{
+    		margin-left: 3%;
+    	}
+    	.input-group {
+    		width: 50%;
+    	}
+    </style>
+	</head>
+
 	<body BGCOLOR="lightgrey">
-		<h3>Add actor or director</h3>
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+	  	<ul id="title">Query System</ul>
+		</nav>
+
+		<nav class="navbar navbar-left" >
+			<table>
+				<tr>
+					<th>Add new content</th>
+				</tr>
+				<tr>
+					<td><a href="newActorDirector.php">Add Actor/Director</a></td>
+				</tr>
+				<br>
+				<tr>
+					<td><a href="movieInfo.php">Add Movie Information</a></td>
+				</tr>
+				<tr>
+					<td><a href="comment.php">Add Comment</a></td>
+				</tr>
+				<tr>
+					<td><a href="ActorToMovie.php">Add Actor/Movie Association</a></td>
+				</tr>
+				<tr>
+					<td><a href="DirectorToMovie.php">Add Director/Movie Association</a></td>
+				</tr>
+			</table>
+			<table>
+				<tr>
+					<th>Browsing content</th>
+				</tr>
+				<tr>
+					<td><a href="search.php">Search</a></td>
+				</tr>
+				<br>
+			</table>
+		</nav>
+	<div class="main">
+		<h3>Add Actor or Director</h3>
 			<form action="./newActorDirector.php" method="GET">
-			
-				Type:	<input type="radio" name="job" value="Actor">Actor
-					<input type="radio" name="job" value="Director"> Director<br>
-				
-				First Name:	<input type="text" name="first" maxlength="20"><br>
-				Last Name:	<input type="text" name="last" maxlength="20"><br>
-				Gender:	<input type="radio" name="Gender" value="Male">Male
-					<input type="radio" name="Gender" value="Female"> Female<br>
-				Date of Birth: <input type="text" name="dob" maxlength="10"> <font size="1">(YYYY/MM/DD)</font><br>
-				Date of Death: <input type="text" name="dod" maxlength="10"> <font size="1">(YYYY/MM/DD) if applicable</font><br>
-				<input type="submit" value="Submit"/>
-				
+				<div class="input-group">
+					<label for="type">Type:</label> <br>
+					  <input type="radio" name="job" value="Actor"> Actor
+						<input type="radio" name="job" value="Director"> Director<br>
+				</div>
+				<div class="input-group">
+			    <label for="first">First Name:</label>
+			    <input type="text" class="form-control" name="first" maxlength="20">
+			  </div>
+			  <div class="input-group">
+			    <label for="last">Last Name:</label>
+			    <input type="text" class="form-control" name="last" maxlength="20">
+			  </div>
+			  <div class="input-group">
+			  	<label for="gender">Gender:</label> <br>
+				  <input type="radio" name="Gender" value="Male"> Male
+						<input type="radio" name="Gender" value="Female"> Female<br>
+				</div>
+			  <div class="input-group">
+			    <label for="dob">Date of Birth:</label>
+			    <input type="text" class="form-control" name="dob" maxlength="10" placeholder="YYYY/MM/DD"> 
+			  </div>
+			  <div class="input-group">
+			    <label for="dod">Date of Death:</label>
+			    <input type="text" class="form-control" name="dod" maxlength="10" placeholder="YYYY/MM/DD if applicable">
+			  </div>
+			  <br>
+				<input type="submit"  class="btn btn-default" value="Submit"/>
+			</form>
+		</div>
 			</form>
 	</body>
+
 	<?php
 		if($_GET["job"]=="")
 			exit();
@@ -96,8 +161,6 @@
 			if(mysqli_query($db,$tuple)){
 				while(!mysqli_query($db,"UPDATE MaxPersonID SET id='$newid' WHERE TRUE" ));
 			}
-			$maxid=mysqli_fetch_array(mysqli_query($db,"SELECT id FROM MaxPersonID"))[0];
-			echo "$maxid";
 		}
 		
 	?>
