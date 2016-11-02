@@ -145,7 +145,7 @@
 			echo "Query failed.";
 		$newid=$maxid+1;
 		//validate title input
-		if($title == "" || preg_match('/[^A-Za-z\.\-\' ]/',$title))
+		if($title == "" || preg_match('/[^0-9A-Za-z\.\-\' ]/',$title))
 			echo 'Invalid title.';
 		//validate year input
 		else if($year_string == "" || preg_match('/[^0-9]/', $year_string) || intval($year_string) > 2016)
