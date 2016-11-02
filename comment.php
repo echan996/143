@@ -140,7 +140,7 @@
 		$comment = mysqli_real_escape_string($db, trim($_GET["comment"]));
 
 		$query = "INSERT INTO Review VALUES ('$name', now() , '$mid', '$rating', '$comment')";
-		if(mysqli_query($db, $query))
+		if(!mysqli_query($db, $query))
 				echo "Failed to update table";
 	?>
 </html>
