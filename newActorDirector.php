@@ -26,6 +26,10 @@
 			<a href="DirectorToMovie.php">Add Director/Movie Association</a>
 		</tr>
 		<br>
+		<tr>
+			<a href="search.php">Search</a>
+		</tr>
+		<br>
 	</table>
 	
 	<body BGCOLOR="lightgrey">
