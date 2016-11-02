@@ -30,3 +30,35 @@
 		</tr>
 		<br>
 	</table>
+	<body BGCOLOR="lightgrey">
+		<h3>Add Movie/Director Association</h3>
+			<form action="./DirectorToMovie.php" method="GET">
+			
+				Director:	<input type="text" name="name" maxlength="40"><br>
+				Movie: <input type="text" name="movie" maxlength="100"><br>
+				<input type="submit" value="Submit"/>
+				
+			</form>
+	</body>
+	<?php
+		
+		
+		if($_GET["name"]=="")
+			exit();
+		$db= mysqli_connect("localhost", "cs143", "");
+		if(!$db)
+			die("Unable to connect to database.");
+		if(!mysqli_select_db($db,"CS143"))
+			die("Unable to select DB.");
+		
+		$did=mysqli_real_escape_string($db, trim($_GET["name"]));
+		$mid = mysqli_real_escape_string($db, trim($_GET["movie"]));
+		
+		$tuple = "INSERT INTO MovieDirector Values('$mid','$did')";
+
+		if(!mysqli_query($db,$tuple))
+			echo "Failed to update table";
+		
+		
+	?>
+</html>

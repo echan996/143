@@ -35,29 +35,38 @@
 			<form action="./ActorToMovie.php" method="GET">
 			
 				Actor:	<input type="text" name="name" maxlength="40"><br>
-				Role:	<input type="text" name="role" maxlength="50"><br>
+				Role:	<input type="text" name="role" maxlength="20"><br>
 				Movie: <input type="text" name="movie" maxlength="100"><br>
 				<input type="submit" value="Submit"/>
 				
 			</form>
 	</body>
 	<?php
-
+		
+		
+		if($_GET["name"]=="")
+			exit();
 		$db= mysqli_connect("localhost", "cs143", "");
 		if(!$db)
 			die("Unable to connect to database.");
 		if(!mysqli_select_db($db,"CS143"))
 			die("Unable to select DB.");
-		$actor_name=mysqli_real_escape_string($db, trim($_GET("name")));
-		$role = mysqli_real_escape_string($db, trim($_GET("role")));
-		$movie = mysqli_real_escape_string($db, trim($_GET("movie")));
 		
-		if($actor_name=="")
-			echo "Invalid Actor name.";
-		$words = preg_split('/\s+/',$actor_name,-1,PREG_SPLIT_NO_EMPTY);
-		$first = $words[0];
-		$last = $words[1];
+		$aid=mysqli_real_escape_string($db, trim($_GET["name"]));
+		$role = mysqli_real_escape_string($db, trim($_GET["role"]));
+		$mid = mysqli_real_escape_string($db, trim($_GET["movie"]));
+		echo $aid;
+		echo $role;
+		echo $mid;
+		if($role=="")
+			echo "Invalid role.";
+		else{
+			$tuple = "INSERT INTO MovieActor Values('$mid','$aid','$role')";
+			echo "Here!";
+			if(!mysqli_query($db,$tuple))
+				echo "Failed to update table";
+		}
 		
-		else if(!preg_match('/^[A-Za-z\.\-\']+$/',$first) || !preg_match('/^[A-Za-z\.\-\']+$/',$last))
+			
 	?>
 </html>

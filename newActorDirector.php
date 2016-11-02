@@ -50,7 +50,9 @@
 			</form>
 	</body>
 	<?php
-
+		if($_GET["job"]=="")
+			exit();
+		
 		$db= mysqli_connect("localhost", "cs143", "");
 		if(!$db)
 			die("Unable to connect to database.");
@@ -60,10 +62,9 @@
 		$first=mysqli_real_escape_string($db, trim($_GET["first"]));
 		$last=mysqli_real_escape_string($db, trim($_GET["last"]));
 		$gender=$_GET["Gender"];
-		$dob =$_GET["dob"];
-		$checkdob = date_parse($dob);
-		$dod = $_GET["dod"];
-		$checkdod= date_parse($dod);
+		$dob =mysqli_real_escape_string($db,trim($_GET["dob"]));
+		$dod = mysqli_real_escape_string($db, trim($_GET["dod"]));
+
 		$maxid=mysqli_fetch_array(mysqli_query($db,"SELECT id FROM MaxPersonID"))[0];
 		if(!$maxid)
 			echo "Query failed.";
@@ -74,9 +75,9 @@
 			echo "Invalid first/last name.";
 		else if($gender=="" && $job=="Actor")
 			echo "You must select a gender for Actor.";
-		else if($dob=="" || !checkdate($checkdob["month"], $checkdob["day"], $checkdob["year"]))
+		else if(!preg_match('/^\d{4}\/\d{2}\/\d{2}$/',$dob))
 			echo "Invalid date of birth.";
-		else if($dod!="" && !checkdate($checkdod["month"], $checkdod["day"], $checkdod["year"]))
+		else if($dod!="" && !preg_match('/^\d{4}\/\d{2}\/\d{2}$/',$dod))
 			echo "Invalid date of death.";
 		else{ // tentative valid input
 			if($job=="Director"){
@@ -96,7 +97,7 @@
 				while(!mysqli_query($db,"UPDATE MaxPersonID SET id='$newid' WHERE TRUE" ));
 			}
 			$maxid=mysqli_fetch_array(mysqli_query($db,"SELECT id FROM MaxPersonID"))[0];
-			//echo "$maxid";
+			echo "$maxid";
 		}
 		
 	?>
