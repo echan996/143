@@ -97,8 +97,26 @@
 			    <input type="text" class="form-control" name="company" maxlength="50">
 			  </div>
 			  <div class="input-group">
-			    <label for="company">Genre:</label>
-			    <input type="text" class="form-control" name="genre" maxlength="20">
+			    <label for="genre[]">Genre:</label>
+						<input type="checkbox" name="genre[]" value="Action">Action</input>
+						<input type="checkbox" name="genre[]" value="Adult">Adult</input>
+						<input type="checkbox" name="genre[]" value="Adventure">Adventure</input>
+						<input type="checkbox" name="genre[]" value="Animation">Animation</input>
+						<input type="checkbox" name="genre[]" value="Comedy">Comedy</input>
+						<input type="checkbox" name="genre[]" value="Crime">Crime</input>
+						<input type="checkbox" name="genre[]" value="Documentary">Documentary</input>
+						<input type="checkbox" name="genre[]" value="Drama">Drama</input>
+						<input type="checkbox" name="genre[]" value="Family">Family</input>
+						<input type="checkbox" name="genre[]" value="Fantasy">Fantasy</input>
+						<input type="checkbox" name="genre[]" value="Horror">Horror</input>
+						<input type="checkbox" name="genre[]" value="Musical">Musical</input>
+						<input type="checkbox" name="genre[]" value="Mystery">Mystery</input>
+						<input type="checkbox" name="genre[]" value="Romance">Romance</input>
+						<input type="checkbox" name="genre[]" value="Sci-Fi">Sci-Fi</input>
+						<input type="checkbox" name="genre[]" value="Short">Short</input>
+						<input type="checkbox" name="genre[]" value="Thriller">Thriller</input>
+						<input type="checkbox" name="genre[]" value="War">War</input>
+						<input type="checkbox" name="genre[]" value="Western">Western</input>
 			  </div>
 			  <br>
 				<input type="submit"  class="btn btn-default" value="Submit"/>
@@ -107,8 +125,9 @@
 	</body>
 
 	<?php
-		if($year_string == "" || $title == "" || $rating == "" || $company == "" || $genre == "")
+		if($_GET["year"] == "" || $_GET["title"] == "" || $_GET["rating"] == "" || $_GET["company"] == "") {
 			exit();
+		}
 		$db= mysqli_connect("localhost", "cs143", "");
 		if(!$db)
 			die("Unable to connect to database.");
@@ -120,7 +139,7 @@
 		$year_string = mysqli_real_escape_string($db, trim($_GET["year"]));
 		$rating = mysqli_real_escape_string($db, trim($_GET["rating"]));
 		$company = mysqli_real_escape_string($db, trim($_GET["company"]));
-		$genre = mysqli_real_escape_string($db, trim($_GET["genre"]));
+		$genres = $_GET["genre"];
 		$maxid=mysqli_fetch_array(mysqli_query($db,"SELECT id FROM MaxMovieID"))[0];
 		if(!$maxid)
 			echo "Query failed.";
@@ -137,18 +156,24 @@
 		//validate company
 		else if($company == "" || preg_match('/[^A-Za-z\.\-\' ]/',$company))
 			echo 'Invalid company name.';
-		//validate genre
-		else if($genre == "" || preg_match('/[^A-Za-z\.\-\' ]/',$genre))
-			echo 'Invalid Genre.';
 		else {
 			$year = intval($year_string);
 			//run the queries
 			$tuple1 = "INSERT INTO Movie VALUES ('$newid', '$title', '$year', '$rating', '$company')";
-			$tuple2 = "INSERT INTO MovieGenre VALUES ('$newid', '$genre')";
-			if(mysqli_query($db,$tuple1) && mysqli_query($db,$tuple2)){
+		
+			if(mysqli_query($db,$tuple1)){
 				while(!mysqli_query($db,"UPDATE MaxMovieID SET id='$newid' WHERE TRUE" ));
 			}
+
+			foreach ($genres as $genre) {
+				$tuple2 = "INSERT INTO MovieGenre VALUES ('$newid', '$genre')";
+				if(! mysqli_query($db, $tuple2)) {
+					echo mysqli_error($db);
+				}
+			}
 		}
+		mysql_close($db);
+
 	?>
 
 	</html>
