@@ -137,7 +137,7 @@
 						$query=mysqli_query($db,$mysql_rq);
 						$genres="";
 						while($row=mysqli_fetch_assoc($query))
-							$genres.=$row['genre'];
+							$genres.=($row['genre']." ");
 						echo $genres;
 					?></td>
 				<td><?php 
@@ -183,7 +183,7 @@
 			$query=mysqli_query($db,$mysql_rq);
 			
 			while($row=mysqli_fetch_assoc($query)){
-				echo "<b>{$row['name']}</b> left a review at {$row['time']} for <b>{$row['rating']}/5</b>. <br> {$row['comment']}";
+				echo "<b>{$row['name']}</b> left a review at {$row['time']} for <b>{$row['rating']}/5</b>. <br> {$row['comment']}<br>";
 			}
 		?>
 	</div>
