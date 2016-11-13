@@ -1,5 +1,5 @@
 #include "BTreeNode.h"
-
+#include <stdlib.h> 
 using namespace std;
 
 /*
@@ -33,7 +33,7 @@ int BTLeafNode::getKeyCount()
 	int count = 0, buffer_key;
 	char* buf_iterator = buffer;
 	
-	for(int i = 0; i < (PageFile::PAGE_SIZE - sizeof(PageID)); 
+	for(int i = 0; i < (PageFile::PAGE_SIZE - sizeof(PageId)); 
 		i += PAIR_SIZE, buf_iterator += PAIR_SIZE, count++) {
 		//examine the current key pair
 		memcpy(&buffer_key, buf_iterator, sizeof(int));
@@ -60,7 +60,7 @@ RC BTLeafNode::insert(int key, const RecordId& rid)
 	//go through all pairs in buffer till we find a pair with a key greater than key
 	char* buf_iterator = buffer;
 	int i = 0, buffer_key;
-	for(; i < (PageFile::PAGE_SIZE - sizeof(PageID)); i += PAIR_SIZE, buf_iterator += PAIR_SIZE) {
+	for(; i < (PageFile::PAGE_SIZE - sizeof(PageId)); i += PAIR_SIZE, buf_iterator += PAIR_SIZE) {
 		//examine the current key pair
 		memcpy(&buffer_key, buf_iterator, sizeof(int));
 		if(buffer_key == 0 || buffer_key >= key) {
@@ -87,7 +87,7 @@ RC BTLeafNode::insert(int key, const RecordId& rid)
 
 	//part c
 	memcpy(updated_buf+i, &key, sizeof(int));
-	memcpy(updated_buf+i+sizeof(int), &rid, sizeof(RecordIf));
+	memcpy(updated_buf+i+sizeof(int), &rid, sizeof(RecordId));
 
 	//part d
 	memcpy(updated_buf+i+PAIR_SIZE, buffer+i, getKeyCount()*PAIR_SIZE - i);
@@ -172,16 +172,16 @@ RC BTLeafNode::locate(int searchKey, int& eid)
 	int buffer_key;
 	char* buf_iterator = buffer;
 	
-	for(int i = 0; i < (PageFile::PAGE_SIZE - sizeof(PageID)); i += PAIR_SIZE, buf_iterator += PAIR_SIZE) {
+	for(int i = 0; i < (PageFile::PAGE_SIZE - sizeof(PageId)); i += PAIR_SIZE, buf_iterator += PAIR_SIZE) {
 		//examine the current key pair
 		memcpy(&buffer_key, buf_iterator, sizeof(int));
 		//if searchKey exists, return 0 and set eid to the index node
-		if(buffer_key == key) {
+		if(buffer_key == searchKey) {
 			eid = i/PAIR_SIZE;
 			return 0;
 		}
 		//if we pass the searchKey val, then it doesnt exist so break
-		if(buffer_key > key) {
+		if(buffer_key > searchKey) {
 			break;
 		}
 	}
