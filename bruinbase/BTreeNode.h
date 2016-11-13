@@ -13,6 +13,9 @@
 #include "RecordFile.h"
 #include "PageFile.h"
 
+//Globals
+const int PAIR_SIZE = sizeof(RecordId) + sizeof(int);
+const int NUM_PAIRS = (PageFile::PAGE_SIZE - sizeof(PageId))/PAIR_SIZE;
 /**
  * BTLeafNode: The class representing a B+tree leaf node.
  */
@@ -104,6 +107,7 @@ class BTLeafNode {
     * that contains the node.
     */
     char buffer[PageFile::PAGE_SIZE];
+
 }; 
 
 
