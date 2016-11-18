@@ -29,7 +29,16 @@ BTreeIndex::BTreeIndex()
  */
 RC BTreeIndex::open(const string& indexname, char mode)
 {
-    return 0;
+	RC error_code = pf.open(indexname, mode);
+	if(error_code) return error_code;
+
+	error_code = pf.read(0, buffer);
+	if(error_code) return error_code;
+
+	memcpy(&rootPid, buffer, sizeof(PageId));
+	memcpy(&treeHeight, buffer + sizeof(PageId), sizeof(int));
+
+  return 0;
 }
 
 /*
@@ -38,7 +47,13 @@ RC BTreeIndex::open(const string& indexname, char mode)
  */
 RC BTreeIndex::close()
 {
-    return 0;
+	memcpy(buffer, &rootPid, sizeof(PageId));
+	memcpy(buffer + sizeof(PageId), &treeHeight, sizeof(int));
+	
+	RC error_code = pf.write(0, buffer);
+	if(error_code) return error_code;
+
+  return pf.close();
 }
 
 /*
@@ -85,5 +100,20 @@ RC BTreeIndex::locate(int searchKey, IndexCursor& cursor)
  */
 RC BTreeIndex::readForward(IndexCursor& cursor, int& key, RecordId& rid)
 {
-    return 0;
+	RC error_code;
+	BTLeafNode l;
+
+	error_code = l.read(cursor.pid, pf);
+	if(error_code) return error_code;
+
+	error_code = l.readEntry(cursor.eid, key, rid);
+	if(error_code) return error_code;
+
+	if(l.getKeyCount >= cursor.eid) cursor.eid++;
+	else {
+		cursor.eid = 0;
+		cursor.pid = l.getNextNodePtr();
+	}
+
+  return 0;
 }
