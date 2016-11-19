@@ -87,7 +87,28 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
  */
 RC BTreeIndex::locate(int searchKey, IndexCursor& cursor)
 {
-    return 0;
+	BTLeafNode leaf;
+	BTNonLeafNode mid;
+	RC error_code;
+	PageId pid = rootPid;
+	int eid;
+
+	for(int cur = 1; cur < treeHeight; cur++) {
+		error_code = mid.read(pid, pf);
+		if(error_code) return error_code;
+
+		error_code = mid.locateChildPtr(searchKey, pid);
+		if(error_code) return error_code;
+	}
+
+	error_code = leaf.read(pid, pf);
+	if(error_code) return error_code;
+
+	error_code = leaf.locate(searchKey, eid);
+	cursor.eid = eid;
+	cursor.pid = pid;
+
+  return 0;
 }
 
 /*
@@ -106,10 +127,13 @@ RC BTreeIndex::readForward(IndexCursor& cursor, int& key, RecordId& rid)
 	error_code = l.read(cursor.pid, pf);
 	if(error_code) return error_code;
 
+	if(cursor.pid <= 0)
+		return RC_INVALID_CURSOR;
+
 	error_code = l.readEntry(cursor.eid, key, rid);
 	if(error_code) return error_code;
 
-	if(l.getKeyCount >= cursor.eid) cursor.eid++;
+	if(l.getKeyCount() >= cursor.eid) cursor.eid++;
 	else {
 		cursor.eid = 0;
 		cursor.pid = l.getNextNodePtr();
