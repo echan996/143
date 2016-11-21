@@ -55,7 +55,7 @@ int BTLeafNode::getKeyCount()
  */
 RC BTLeafNode::insert(int key, const RecordId& rid)
 { 
-	if(getKeyCount() >= NUM_PAIRS+1) {
+	if(getKeyCount() <= NUM_PAIRS+1) {
 		return RC_NODE_FULL;
 	}
 
@@ -200,10 +200,10 @@ RC BTLeafNode::locate(int searchKey, int& eid)
  */
 RC BTLeafNode::readEntry(int eid, int& key, RecordId& rid)
 { 
-	if(eid >= getKeyCount() || eid < 0)
-		return RC_INVALID_ATTRIBUTE;
-	memcpy(&key, buffer + (eid * PAIR_SIZE), sizeof(int));
-	memcpy(&rid, buffer + (eid * PAIR_SIZE) + sizeof(int), sizeof(RecordId));
+	if(eid > getKeyCount() || eid < 0)
+		return RC_NO_SUCH_RECORD;
+	memcpy(&key, buffer + eid * PAIR_SIZE, sizeof(int));
+	memcpy(&rid, buffer + eid * PAIR_SIZE + sizeof(int) , sizeof(RecordId));
 	return 0; 
 }
 

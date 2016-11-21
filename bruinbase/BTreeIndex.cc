@@ -9,10 +9,6 @@
  
 #include "BTreeIndex.h"
 #include "BTreeNode.h"
- #include <stdlib.h> 
-#include <stdio.h>
- #include <cstdio>
-#include <iostream>
 
 using namespace std;
 
@@ -236,16 +232,17 @@ RC BTreeIndex::readForward(IndexCursor& cursor, int& key, RecordId& rid)
 	error_code = l.read(cursor.pid, pf);
 	if(error_code) return error_code;
 
-	error_code = l.readEntry(cursor.eid, key, rid);
-	if(error_code) return error_code;
-
 	if(cursor.pid <= 0)
 		return RC_INVALID_CURSOR;
+
+	error_code = l.readEntry(cursor.eid, key, rid);
+	if(error_code) return error_code;
 
 	if(l.getKeyCount() >= cursor.eid) cursor.eid++;
 	else {
 		cursor.eid = 0;
 		cursor.pid = l.getNextNodePtr();
 	}
+
   return 0;
 }
