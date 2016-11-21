@@ -1,5 +1,7 @@
 #include "BTreeNode.h"
 #include <stdlib.h> 
+#include <stdio.h>
+#include <cstring>
 using namespace std;
 
 /*
@@ -263,15 +265,15 @@ int BTNonLeafNode::getKeyCount()
 	int counter = 0, page_num;
 	char* buf = buffer+sizeof(PageId);
 	
-	for(int i = 0; i < (PageFile::PAGE_SIZE - sizeof(PageId)); i += NONLEAF_PAIR_SIZE, buf += NONLEAF_PAIR_SIZE, count++) {
+	for(int i = 0; i < (PageFile::PAGE_SIZE - sizeof(PageId)); i += NONLEAF_PAIR_SIZE, buf += NONLEAF_PAIR_SIZE, counter++) {
 		//examine the current key pair
 		memcpy(&page_num, buf, sizeof(int));
 		//finish at the last key
 		if(page_num == 0) {
-			return count;
+			return counter;
 		}
 	}
-	return count;
+	return counter;
 }
 
 
@@ -303,7 +305,7 @@ RC BTNonLeafNode::insert(int key, PageId pid)
 	buf = buffer+pos*NONLEAF_PAIR_SIZE+sizeof(PageId);
 	memcpy(buf,&key,sizeof(int));
 	buf = buf+sizeof(int);
-	memcpy(buf,&pid,sizeof(PageId);
+	memcpy(buf,&pid,sizeof(PageId));
 	return 0;
 }
 
@@ -318,6 +320,24 @@ RC BTNonLeafNode::insert(int key, PageId pid)
  * @return 0 if successful. Return an error code if there is an error.
  * constraint call when leafnode is 1 away from being filled. 
  */
+ RC BTNonLeafNode::setNextNodePtr(PageId pid)
+{
+	//set the value at the end of the buffer
+	if(pid < 0) return RC_INVALID_PID;
+	char *buf = buffer;
+	memcpy(buf+PageFile::PAGE_SIZE-sizeof(PageId), &pid, sizeof(PageId));
+	return 0;
+}
+
+PageId BTNonLeafNode::getNextNodePtr()
+{ 
+	//get the value from the end of the buffer
+	PageId pid = 0;
+	char *buf = buffer;
+	memcpy(&pid, buf+PageFile::PAGE_SIZE - sizeof(PageId), sizeof(PageId));
+	return pid;
+}
+
 RC BTNonLeafNode::insertAndSplit(int key, PageId pid, BTNonLeafNode& sibling, int& midKey)
 { 
 	insert(key,pid);
@@ -328,7 +348,7 @@ RC BTNonLeafNode::insertAndSplit(int key, PageId pid, BTNonLeafNode& sibling, in
 	memcpy(sibling.buffer, buffer+FIRST_HALF_INDEX, PageFile::PAGE_SIZE-sizeof(PageId)-FIRST_HALF_INDEX);
 	sibling.setNextNodePtr(getNextNodePtr());
 	memset(buffer+FIRST_HALF_INDEX, 0, SECOND_HALF_SIZE -sizeof(PageId));
-	memcpy(midKey, buffer+FIRST_HALF_INDEX+sizeof(PageId),sizeof(int));
+	memcpy(&midKey, buffer+FIRST_HALF_INDEX+sizeof(PageId),sizeof(int));
 	return 0;
 }
 
@@ -370,7 +390,7 @@ RC BTNonLeafNode::locateChildPtr(int searchKey, PageId& pid)
 	
 	//if the ID is bigger than found greatest smaller ID
 	if(searchKey >= key){
-		pid = *((PageId*)(buffer+pos*NONLEAF_PAIR_SIZE+sizeof(PageId)+sizeof(int));
+		pid = *((PageId*)(buffer+pos*NONLEAF_PAIR_SIZE+sizeof(PageId)+sizeof(int)));
 	}
 	else{
 		pid = *((PageId*)(buffer+pos*NONLEAF_PAIR_SIZE));
@@ -388,7 +408,7 @@ RC BTNonLeafNode::locateChildPtr(int searchKey, PageId& pid)
 RC BTNonLeafNode::initializeRoot(PageId pid1, int key, PageId pid2)
 { 
 	char* buf = buffer;
-	memset(buffer, 0, PAGE_SIZE);
+	memset(buffer, 0, PageFile::PAGE_SIZE);
 	memcpy(buf, &pid1,sizeof(PageId));
 	buf = buf+sizeof(PageId);
 	memcpy(buf,&key,sizeof(int));

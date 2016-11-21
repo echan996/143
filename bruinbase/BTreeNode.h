@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (C) 2008 by The Regents of the University of California
  * Redistribution of this file is permitted under the terms of the GNU
  * Public License (GPL).
@@ -12,11 +12,12 @@
 
 #include "RecordFile.h"
 #include "PageFile.h"
-
+#include <cstring>
 //Globals
 const int PAIR_SIZE = sizeof(RecordId) + sizeof(int);
 const int NONLEAF_PAIR_SIZE= sizeof(PageId) + sizeof(int); 
 const int NUM_PAIRS = (PageFile::PAGE_SIZE - sizeof(PageId))/PAIR_SIZE;
+const int NUM_NONLEAF_PAIRS = (PageFile::PAGE_SIZE - sizeof(PageId))/NONLEAF_PAIR_SIZE;
 /**
  * BTLeafNode: The class representing a B+tree leaf node.
  */
@@ -151,6 +152,8 @@ class BTNonLeafNode {
     * @return 0 if successful. Return an error code if there is an error.
     */
     RC locateChildPtr(int searchKey, PageId& pid);
+    RC setNextNodePtr(PageId pid);
+    PageId getNextNodePtr();
 
    /**
     * Initialize the root node with (pid1, key, pid2).
