@@ -22,7 +22,6 @@ using namespace std;
 BTreeIndex::BTreeIndex()
 {
     rootPid = -1;
-	treeHeight = 0;
 }
 
 /*
@@ -69,111 +68,7 @@ RC BTreeIndex::close()
  */
 RC BTreeIndex::insert(int key, const RecordId& rid)
 {
-    //top level creation logic and recursive call 
-	
-	if(treeHeight==0){
-		//create tree
-		BTLeafNode rootNode;
-		rootNode.insert(key,rid);
-		if(pf.endPid()==0)
-			rootPid = 1;
-		else
-			rootPid = pf.endPid();
-		treeHeight++;
-		int error = rootNode.write(rootPid,pf);
-		//bug checking on error codes?
-		return error;
-	}
-	//else traverse the tree!
-	PageId temp_pid=-1;
-	int temp_key= -1;
-	return sub_insert(key,rid,rootPid,1,temp_pid, temp_key);
-}
-
-RC BTreeIndex::sub_insert(int key, const RecordId& rid, PageId pid, int height, PageId& temp_pid, int& temp_key){
-	RC error;
-	temp_pid=-1;
-	temp_key=-1;
-	//middle of tree condition
-	if(height!=treeHeight){
-		BTNonLeafNode node;
-		node.read(pid, pf);
-		PageId location=0;
-		node.locateChildPtr(key,location);
-		PageId recursePid=-1;
-		int recurseKey=-1;
-		error = sub_insert(key,rid,location,height+1,recursePid,recurseKey);
-		
-		if(recursePid!=-1 || recurseKey!=-1){
-			if(node.insert(recurseKey,recursePid)==0){
-				node.write(pid,pf);
-				return 0;
-			}
-			else{ //need to split
-				BTNonLeafNode node2;
-				int key2;
-				node.insertAndSplit(recurseKey,recursePid,node2,key2);
-				//pass key to parent and write to child
-				temp_pid = pf.endPid();
-				temp_key = key2;
-				error = node.write(pid,pf);
-				if(error)
-					return error;
-				error = node2.write(temp_pid,pf);
-				if(error)
-					return error;
-				
-				//check root?
-				if(treeHeight==1){
-					BTNonLeafNode root;
-					root.initializeRoot(pid,temp_key,temp_pid);
-					treeHeight++;
-					rootPid=pf.endPid();
-					root.write(rootPid,pf);
-				}
-			}
-			return 0;
-		}
-	}
-	else{ //youre at the bottom of the tree dealing with leaf nodes!
-		BTLeafNode leaf;
-		leaf.read(pid,pf);
-		if(leaf.insert(key,rid)==0){
-			leaf.write(pid,pf);
-			return 0;
-		}
-		// otherwise, we have to insertAndSplit
-		BTLeafNode newLeaf;
-		int newKey;
-		error = leaf.insertAndSplit(key,rid,newLeaf,newKey);
-		if(error)
-			return error;
-		
-		temp_key = newKey;
-		temp_pid = pf.endPid();
-		
-		newLeaf.setNextNodePtr(leaf.getNextNodePtr());
-		leaf.setNextNodePtr(temp_pid);
-		
-		
-		//write
-		error = leaf.write(pid,pf);
-		if(error)
-			return error;
-		error = newLeaf.write(temp_pid,pf);
-		if(error)
-			return error;
-		
-		
-		if(treeHeight==1){
-			BTNonLeafNode root;
-			root.initializeRoot(pid,temp_key,temp_pid);
-			treeHeight++;
-			rootPid=pf.endPid();
-			root.write(rootPid,pf);
-		}
-		return 0;
-	}
+    return 0;
 }
 
 /**
