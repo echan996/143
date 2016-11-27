@@ -55,7 +55,7 @@ int BTLeafNode::getKeyCount()
  */
 RC BTLeafNode::insert(int key, const RecordId& rid)
 { 
-	if(getKeyCount() <= NUM_PAIRS+1) {
+	if(getKeyCount() >= NUM_PAIRS) {
 		return RC_NODE_FULL;
 	}
 
