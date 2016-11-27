@@ -15,7 +15,7 @@
 #include <string>
 #include "Bruinbase.h"
 #include "SqlEngine.h"
-#include "BTreeIndex.h"
+
 
 using namespace std;
 
@@ -138,7 +138,7 @@ RC SqlEngine::selectIndex(int attr, const string& table, const vector<SelCond>& 
 			count++;
 			continue;
 		}
-		if((rc=rf.read(rid,key,value) < 0){
+		if((rc=rf.read(rid,key,value) < 0)){
 			goto exit_select;
 		}
 		//conditions on tuple!
@@ -221,7 +221,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
   }
   bool conditionChecker = false;
   for(int i=0; i < cond.size(); i++){
-	  if((temp.attr==1 || temp.attr == 2 ) && cond[i].comp!=SelCond::NE)
+	  if((cond[i].attr==1 || cond[i].attr == 2 ) && cond[i].comp!=SelCond::NE)
 		conditionChecker=true;
   }
   // scan the table file from the beginning
@@ -336,7 +336,7 @@ RC SqlEngine::load(const string& table, const string& loadfile, bool index)
 	else{
 		bTree.open(table+".idx",'w');
 		while(getline(in_file,tuple)){
-			if(parseLoadLine(tuple,key,value)!=0{
+			if(parseLoadLine(tuple,key,value)!=0){
 				return RC_FILE_WRITE_FAILED;
 			}
 			if(rf.append(key,value,r_id)!=0){
