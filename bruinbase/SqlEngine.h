@@ -14,6 +14,7 @@
 #include "Bruinbase.h"
 #include "RecordFile.h"
 
+
 /**
  * data structure to represent a condition in the WHERE clause
  */
@@ -49,6 +50,7 @@ class SqlEngine {
    * @return error code. 0 if no error
    */
   static RC select(int attr, const std::string& table, const std::vector<SelCond>& conds);
+  static RC selectIndex(int attr, const string& table, const vector<SelCond>& cond, BTreeIndex& bTree);
 
   /**
    * load a table from a load file.
