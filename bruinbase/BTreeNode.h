@@ -102,13 +102,15 @@ class BTLeafNode {
     * @return 0 if successful. Return an error code if there is an error.
     */
     RC write(PageId pid, PageFile& pf);
-
+    void print();
   private:
    /**
     * The main memory buffer for loading the content of the disk page 
     * that contains the node.
     */
     char buffer[PageFile::PAGE_SIZE];
+    bool contains_zero;
+
 
 }; 
 
@@ -185,13 +187,14 @@ class BTNonLeafNode {
     * @return 0 if successful. Return an error code if there is an error.
     */
     RC write(PageId pid, PageFile& pf);
-
-  private:
+    void print();
+    char buffer[PageFile::PAGE_SIZE];
+      private:
    /**
     * The main memory buffer for loading the content of the disk page 
     * that contains the node.
     */
-    char buffer[PageFile::PAGE_SIZE];
+    
 }; 
 
 #endif /* BTREENODE_H */

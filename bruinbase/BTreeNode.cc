@@ -2,7 +2,9 @@
 #include <stdlib.h> 
 #include <stdio.h>
 #include <cstring>
+#include <iostream>
 using namespace std;
+
 
 /*
  * Read the content of the node from the page pid in the PageFile pf.
@@ -55,20 +57,29 @@ int BTLeafNode::getKeyCount()
  */
 RC BTLeafNode::insert(int key, const RecordId& rid)
 { 
-	if(getKeyCount() >= NUM_PAIRS+1) {
+	if(getKeyCount() + 1 > NUM_PAIRS) {
 		return RC_NODE_FULL;
 	}
 
 	//go through all pairs in buffer till we find a pair with a key greater than key
 	char* buf_iterator = buffer;
-	int i = 0, buffer_key;
+	int i = 0;
+	bool zero = contains_zero;
 	for(; i < (PageFile::PAGE_SIZE - sizeof(PageId)); i += PAIR_SIZE, buf_iterator += PAIR_SIZE) {
+		int buffer_key = 0;
 		//examine the current key pair
 		memcpy(&buffer_key, buf_iterator, sizeof(int));
-		if(buffer_key == 0 || buffer_key >= key) {
+		// cout << "zero is " << zero << " and contains_zero is " << contains_zero << endl;
+		// cout << "buffer key is " << buffer_key << endl;
+		// cout << "*********" << endl;
+		if((buffer_key == 0 && !zero) || buffer_key >= key) {
 			//we have found the spot we need to insert at
+			// cout << "buffer key is " << buffer_key << endl;
+			// cout << "zero is " << zero << endl;
+			// cout << "key is " << key << endl;
 			break;
 		}
+		if(buffer_key == 0) zero = false;
 	}
 
 	/** 
@@ -101,6 +112,8 @@ RC BTLeafNode::insert(int key, const RecordId& rid)
 	//part f
 	memcpy(buffer, updated_buf, PageFile::PAGE_SIZE);
 	free(updated_buf);
+
+	if(key == 0) contains_zero = true;
 
 	return 0;
 }
@@ -169,12 +182,15 @@ RC BTLeafNode::insertAndSplit(int key, const RecordId& rid,
                    behind the largest key smaller than searchKey.
  * @return 0 if searchKey is found. Otherwise return an error code.
  */
+
+ 
 RC BTLeafNode::locate(int searchKey, int& eid)
 { 
-	int buffer_key;
+	
 	char* buf_iterator = buffer;
 	
 	for(int i = 0; i < (PageFile::PAGE_SIZE - sizeof(PageId)); i += PAIR_SIZE, buf_iterator += PAIR_SIZE) {
+		int buffer_key = 0;
 		//examine the current key pair
 		memcpy(&buffer_key, buf_iterator, sizeof(int));
 		//if searchKey exists, return 0 and set eid to the index node
@@ -200,6 +216,7 @@ RC BTLeafNode::locate(int searchKey, int& eid)
  */
 RC BTLeafNode::readEntry(int eid, int& key, RecordId& rid)
 { 
+	cout << "eid is " << eid << endl;
 	if(eid >= getKeyCount() || eid < 0)
 		return RC_INVALID_ATTRIBUTE;
 	memcpy(&key, buffer + (eid * PAIR_SIZE), sizeof(int));

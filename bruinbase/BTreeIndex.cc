@@ -23,6 +23,7 @@ BTreeIndex::BTreeIndex()
 {
     rootPid = -1;
 	treeHeight = 0;
+	std::fill(buffer, buffer + PageFile::PAGE_SIZE, 0);
 }
 
 /*
@@ -37,11 +38,23 @@ RC BTreeIndex::open(const string& indexname, char mode)
 	RC error_code = pf.open(indexname, mode);
 	if(error_code) return error_code;
 
+	if(pf.endPid() == 0) {
+		rootPid = -1;
+		treeHeight = 0;
+		return 0;
+	}
+
 	error_code = pf.read(0, buffer);
 	if(error_code) return error_code;
 
-	memcpy(&rootPid, buffer, sizeof(PageId));
-	memcpy(&treeHeight, buffer + sizeof(PageId), sizeof(int));
+	// int temp_pid, temp_height;
+	// memcpy(&temp_pid, buffer, sizeof(PageId));
+	// memcpy(&temp_height, buffer + sizeof(PageId), sizeof(int));
+
+	// if(temp_height>0 && temp_pid>0) {
+	// 	rootPid = temp_pid;
+	// 	treeHeight = temp_height;
+	// }
 
   return 0;
 }
@@ -52,8 +65,8 @@ RC BTreeIndex::open(const string& indexname, char mode)
  */
 RC BTreeIndex::close()
 {
-	memcpy(buffer, &rootPid, sizeof(PageId));
-	memcpy(buffer + sizeof(PageId), &treeHeight, sizeof(int));
+	memcpy(buffer, &rootPid, sizeof(int));
+	memcpy(buffer + sizeof(int), &treeHeight, sizeof(int));
 	
 	RC error_code = pf.write(0, buffer);
 	if(error_code) return error_code;
@@ -135,10 +148,12 @@ RC BTreeIndex::sub_insert(int key, const RecordId& rid, PageId pid, int height, 
 			return 0;
 		}
 	}
-	else{ //youre at the bottom of the tree dealing with leaf nodes!
+	else { //youre at the bottom of the tree dealing with leaf nodes!
+		// cout << "enters leaf insert" << endl;
 		BTLeafNode leaf;
 		leaf.read(pid,pf);
 		if(leaf.insert(key,rid)==0){
+			// cout << "leaf inserted" << endl;
 			leaf.write(pid,pf);
 			return 0;
 		}
@@ -148,6 +163,7 @@ RC BTreeIndex::sub_insert(int key, const RecordId& rid, PageId pid, int height, 
 		error = leaf.insertAndSplit(key,rid,newLeaf,newKey);
 		if(error)
 			return error;
+		// cout << "leaf insert and split works" << endl;
 		
 		temp_key = newKey;
 		temp_pid = pf.endPid();
@@ -174,6 +190,7 @@ RC BTreeIndex::sub_insert(int key, const RecordId& rid, PageId pid, int height, 
 		}
 		return 0;
 	}
+	return 0;
 }
 
 /**
@@ -194,6 +211,8 @@ RC BTreeIndex::sub_insert(int key, const RecordId& rid, PageId pid, int height, 
  *                    smaller than searchKey.
  * @return 0 if searchKey is found. Othewise an error code
  */
+
+ 
 RC BTreeIndex::locate(int searchKey, IndexCursor& cursor)
 {
 	BTLeafNode leaf;
@@ -214,6 +233,8 @@ RC BTreeIndex::locate(int searchKey, IndexCursor& cursor)
 	if(error_code) return error_code;
 
 	error_code = leaf.locate(searchKey, eid);
+	if(error_code) return error_code;
+
 	cursor.eid = eid;
 	cursor.pid = pid;
 
