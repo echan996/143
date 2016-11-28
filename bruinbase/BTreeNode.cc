@@ -97,7 +97,7 @@ RC BTLeafNode::insert(int key, const RecordId& rid)
 	//part e
 	PageId next = getNextNodePtr();
 	memcpy(updated_buf+PageFile::PAGE_SIZE-sizeof(PageId), &next, sizeof(PageId));
-
+      
 	//part f
 	memcpy(buffer, updated_buf, PageFile::PAGE_SIZE);
 	free(updated_buf);
@@ -119,11 +119,11 @@ RC BTLeafNode::insertAndSplit(int key, const RecordId& rid,
                               BTLeafNode& sibling, int& siblingKey)
 { 
 	//make sure sibling is empty 
-	if(sibling.getKeyCount() != 0) {
-		return RC_INVALID_ATTRIBUTE;
-	} else {
+	// if(sibling.getKeyCount() != 0) {
+	// 	return RC_INVALID_ATTRIBUTE;
+	// } else {
 		memset(&sibling, 0, PageFile::PAGE_SIZE);
-	}
+	// }
 
 	//make sure splitting is necessary
 	if(getKeyCount() < NUM_PAIRS) {
@@ -171,10 +171,11 @@ RC BTLeafNode::insertAndSplit(int key, const RecordId& rid,
  */
 RC BTLeafNode::locate(int searchKey, int& eid)
 { 
-	int buffer_key;
+	
 	char* buf_iterator = buffer;
 	
-	for(int i = 0; i < (PageFile::PAGE_SIZE - sizeof(PageId)); i += PAIR_SIZE, buf_iterator += PAIR_SIZE) {
+	for(int i = 0; i < getKeyCount() * PAIR_SIZE; i += PAIR_SIZE, buf_iterator += PAIR_SIZE) {
+		int buffer_key = 0;
 		//examine the current key pair
 		memcpy(&buffer_key, buf_iterator, sizeof(int));
 		//if searchKey exists, return 0 and set eid to the index node
@@ -182,10 +183,10 @@ RC BTLeafNode::locate(int searchKey, int& eid)
 			eid = i/PAIR_SIZE;
 			return 0;
 		}
-		//if we pass the searchKey val, then it doesnt exist so break
-		if(buffer_key > searchKey) {
-			break;
-		}
+		// //if we pass the searchKey val, then it doesnt exist so break
+		// if(buffer_key > searchKey) {
+		// 	break;
+		// }
 	}
 	eid = getKeyCount();
 	return RC_NO_SUCH_RECORD; 
@@ -200,7 +201,7 @@ RC BTLeafNode::locate(int searchKey, int& eid)
  */
 RC BTLeafNode::readEntry(int eid, int& key, RecordId& rid)
 { 
-	if(eid > getKeyCount() || eid < 0)
+	if(eid >= getKeyCount() || eid < 0)
 		return RC_NO_SUCH_RECORD;
 	memcpy(&key, buffer + eid * PAIR_SIZE, sizeof(int));
 	memcpy(&rid, buffer + eid * PAIR_SIZE + sizeof(int) , sizeof(RecordId));

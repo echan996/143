@@ -43,14 +43,14 @@ RC BTreeIndex::open(const string& indexname, char mode)
 	error_code = pf.read(0, buffer);
 	if(error_code) return error_code;
 
-	// int temp_pid, temp_height;
-	// memcpy(&temp_pid, buffer, sizeof(PageId));
-	// memcpy(&temp_height, buffer + sizeof(PageId), sizeof(int));
+	int temp_pid, temp_height;
+	memcpy(&temp_pid, buffer, sizeof(PageId));
+	memcpy(&temp_height, buffer + sizeof(PageId), sizeof(int));
 
-	// if(temp_height>0 && temp_pid>0) {
-	// 	rootPid = temp_pid;
-	// 	treeHeight = temp_height;
-	// }
+	if(temp_height>0 && temp_pid>0) {
+		rootPid = temp_pid;
+		treeHeight = temp_height;
+	}
 
   return 0;
 }
