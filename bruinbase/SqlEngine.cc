@@ -46,13 +46,12 @@ RC SqlEngine::selectIndex(int attr, const string& table, const vector<SelCond>& 
   rid.sid=0;
   RC     rc;
   int    key;     
-  string value,equalsVal;
+  string value,equalsVal="";
   int    count=0;
   int    diff;
-  int min=-1, max = -1;
+  int min=0, max = 0;
   int equals=-1;
-  bool GE = false;
-  bool LE = false;
+  
   bool impossible=false;
   bool onlyKey=true;
   //we need to lower the number of reads and move the cursor as far as is possible before starting to read
@@ -60,89 +59,85 @@ RC SqlEngine::selectIndex(int attr, const string& table, const vector<SelCond>& 
 	  return rc;
   }
 	//parse the conditions and simplify
-	for(int i=0; i < cond.size(); i++){
+	for(unsigned i=0; i < cond.size(); i++){
 		
 		if(cond[i].attr==1){
 			int val = atoi(cond[i].value);
 			switch(cond[i].comp){
 				case SelCond::EQ:
-					if(equals!=-1 && val!=equals)
+					if((equals!=-1 && val!=equals))
 						impossible=true;
 					equals = val;
+					if((min > equals && min!=0)|| (max < equals && max!=0))
+						impossible=true;
+					min = max = equals;
 					break;
 				case SelCond::GE:
-					if(val> min){
-						GE = true;
+					if(min==0)
+						min=val;
+					else if(val> min){
 						min = val;
 					}
 					break;
 				case SelCond::GT:
-					if(val > min){
-						GE = false;
-						min = val;
+					if(min==0)
+						min=val+1;
+					else if(val+1 > min){
+						min = val+1;
 					}
 					break;
 				case SelCond::LE:
-					if(val < max || max == -1){
-						LE = true;
+					if(max == 0)
+						max = val;
+					else if(val < max){
 						max = val;
 					} 
 					break;
 				case SelCond::LT:
-					if(val < max || max == -1){
-						LE = false;
-						max = val;
+					if(max == 0)
+						max = val-1;
+					else if(val-1 < max){
+						max = val-1;
 					}
+					break;
 				
 			}
 		}
 		else if (cond[i].attr==2){
 			onlyKey=false;
 			if(cond[i].comp==SelCond::EQ){
-				if(equalsVal=="" || strcmp(value.c_str(),cond[i].value)==0)
+				if(equalsVal=="" || strcmp(equalsVal.c_str(),cond[i].value)==0)
 					equalsVal = cond[i].value;
 				else
 					impossible=true;
 			}
 		}
 	}
-	if(impossible || max!=-1 && min!=-1 && max < min)
+	if(impossible || (max!=0 && min!=0 && max < min)){
+		//cout << "IMPOSSIBLE!!!";
 		goto exit_select;
-	if( max!=-1 && max==min && !LE && !GE)
-		goto exit_select;
-  
-	if(equals!=-1)
-		bTree.locate(equals, c);
-	else if(min!=-1 && GE)
-		bTree.locate(min,c);
-	else if(min!=-1 && !GE)
-		bTree.locate(min+1,c);
-	else
-		bTree.locate(0,c);
+	}
+	bTree.locate(min,c);
 	while(bTree.readForward(c,key,rid)==0){
-		if(!onlyKey && attr==4){//just getting count so don't check val
-			if(min!=-1){
-				if(GE && key < min)
-					goto exit_select;
-				else if(!GE && key<=min)
-					goto exit_select;
+		if(onlyKey && attr==4){//just getting count so don't check val
+			//cout << "getting total num!" << endl;
+			if(min!=0 && key < min){
+				goto exit_select;
 			}
-			if(max!=-1){
-				if(LE && key>max)
-					goto exit_select;
-				else if(!LE && key>=max)
-					goto exit_select;
+			if(max!=0){
+				goto exit_select;
 			}
-			if(equals!=1 && key!=equals)
+			if(equals!=-1 && key!=min)
 				goto exit_select;
 			count++;
 			continue;
 		}
+		
 		if((rc=rf.read(rid,key,value) < 0)){
 			goto exit_select;
 		}
 		//conditions on tuple!
-		for(int i=0; i < cond.size();i++){
+		for(unsigned i=0; i < cond.size();i++){
 			diff = cond[i].attr==1 ? key-atoi(cond[i].value) : strcmp(value.c_str(),cond[i].value);
 			switch(cond[i].comp){ //same code as select lol
 				case SelCond::EQ:
@@ -176,8 +171,11 @@ RC SqlEngine::selectIndex(int attr, const string& table, const vector<SelCond>& 
 					}
 					break;
 			}
-			count ++;
-			switch(attr){
+			//count ++;
+			
+			
+		}
+		switch(attr){
 				case 1: //SELECT KEY
 					fprintf(stdout,"%d\n",key);
 					break;
@@ -187,14 +185,13 @@ RC SqlEngine::selectIndex(int attr, const string& table, const vector<SelCond>& 
 				case 3:
 					fprintf(stdout,"%d \"%s\"\n",key,value.c_str());
 					break;
-			}
-			next_tuple:
-			fprintf(stdout,"");
 		}
+		next_tuple:
+			;
 	}
 	rc = 0;
 	exit_select:
-	if(attr==4 && rc==0){
+	if(attr==4){
 		fprintf(stdout, "%d\n",count);
 	}
 	bTree.close();
@@ -210,7 +207,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
   RC     rc;
   int    key;     
   string value;
-  int    count;
+  int    count=0;
   int    diff;
   BTreeIndex bTree;
 
@@ -225,7 +222,8 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
 		conditionChecker=true;
   }
   // scan the table file from the beginning
-  if(bTree.open(table+".idx",'r')==0 && (!conditionChecker && attr!=4)){
+  int a;
+  if(a=bTree.open(table+".idx",'r')!=0 ){
 	 
   
 	  rid.pid = rid.sid = 0;
@@ -299,7 +297,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
 
 
   // print matching tuple count if "select count(*)"
-  if (attr == 4) {
+  if (attr == 4 && a!=0) {
     fprintf(stdout, "%d\n", count);
   }
   rc = 0;
@@ -310,6 +308,8 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
   return rc;
 }
 
+
+			
 RC SqlEngine::load(const string& table, const string& loadfile, bool index)
 {
   /* your code here */

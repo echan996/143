@@ -31,7 +31,7 @@ class BTLeafNode {
     * @return 0 if successful. Return an error code if the node is full.
     */
     RC insert(int key, const RecordId& rid);
-
+	BTLeafNode();
    /**
     * Insert the (key, rid) pair to the node
     * and split the node half and half with sibling.
@@ -129,7 +129,7 @@ class BTNonLeafNode {
     */
     RC insert(int key, PageId pid);
 	RC locate(int searchKey, int& eid);
-
+	BTNonLeafNode();
 
    /**
     * Insert the (key, pid) pair to the node

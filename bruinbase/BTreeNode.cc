@@ -1,3 +1,4 @@
+
 #include "BTreeNode.h"
 #include <stdlib.h> 
 #include <stdio.h>
@@ -10,6 +11,13 @@ using namespace std;
  * @param pf[IN] PageFile to read from
  * @return 0 if successful. Return an error code if there is an error.
  */
+ BTLeafNode::BTLeafNode(){
+	 memset(buffer, 0, PageFile::PAGE_SIZE);
+ }
+  BTNonLeafNode::BTNonLeafNode(){
+	 //memset(buffer, 0, PageFile::PAGE_SIZE); crashes for some reason??
+	 fill(buffer, buffer+PageFile::PAGE_SIZE,0);
+ }
 RC BTLeafNode::read(PageId pid, const PageFile& pf)
 { 
 	return pf.read(pid, buffer);
@@ -173,23 +181,21 @@ RC BTLeafNode::locate(int searchKey, int& eid)
 { 
 	
 	char* buf_iterator = buffer;
-	
-	for(int i = 0; i < getKeyCount() * PAIR_SIZE; i += PAIR_SIZE, buf_iterator += PAIR_SIZE) {
-		int buffer_key = 0;
-		//examine the current key pair
-		memcpy(&buffer_key, buf_iterator, sizeof(int));
-		//if searchKey exists, return 0 and set eid to the index node
-		if(buffer_key == searchKey) {
+
+	for(int i=0; i<getKeyCount()*PAIR_SIZE; i+=PAIR_SIZE, buf_iterator+=PAIR_SIZE)
+	{
+		int key;
+		memcpy(&key, buf_iterator, sizeof(int)); 
+		if(key >= searchKey)
+		{
 			eid = i/PAIR_SIZE;
 			return 0;
 		}
-		// //if we pass the searchKey val, then it doesnt exist so break
-		// if(buffer_key > searchKey) {
-		// 	break;
-		// }
 	}
+	
+	
 	eid = getKeyCount();
-	return RC_NO_SUCH_RECORD; 
+	return RC_NO_SUCH_RECORD;
 }
 
 /*
@@ -263,14 +269,14 @@ RC BTNonLeafNode::write(PageId pid, PageFile& pf)
  */
 int BTNonLeafNode::getKeyCount()
 {
-	int counter = 0, page_num;
-	char* buf = buffer+sizeof(PageId);
-	
-	for(int i = 0; i < (PageFile::PAGE_SIZE - sizeof(PageId)); i += NONLEAF_PAIR_SIZE, buf += NONLEAF_PAIR_SIZE, counter++) {
+	int counter = 0;
+	char* buf_itr = buffer+8;
+	int key;
+	for(int i = 8; i < (PageFile::PAGE_SIZE - NONLEAF_PAIR_SIZE); i += NONLEAF_PAIR_SIZE, buf_itr += NONLEAF_PAIR_SIZE, counter++) {
 		//examine the current key pair
-		memcpy(&page_num, buf, sizeof(int));
+		memcpy(&key, buf_itr, sizeof(int));
 		//finish at the last key
-		if(page_num == 0) {
+		if(key == 0) {
 			return counter;
 		}
 	}
@@ -284,31 +290,37 @@ int BTNonLeafNode::getKeyCount()
  * @param pid[IN] the PageId to insert
  * @return 0 if successful. Return an error code if the node is full.
  */
+ 
 RC BTNonLeafNode::insert(int key, PageId pid)
 {
 	//assumes the current page has an empty node and doesn't need to split?
-	int pos;
-	BTNonLeafNode::locate(key,pos);
-	char* buf=buffer+pos*NONLEAF_PAIR_SIZE;
-	
-	
+	int pairs = (PageFile::PAGE_SIZE-sizeof(PageId))/NONLEAF_PAIR_SIZE;
+	char* buf_itr = buffer+8;
+	int search_key;
+	int i;
+	if(getKeyCount()+1 > pairs){
+		return RC_NODE_FULL;
+	}
+	for(i=8; i<PageFile::PAGE_SIZE-NONLEAF_PAIR_SIZE;i+=NONLEAF_PAIR_SIZE, buf_itr+=NONLEAF_PAIR_SIZE){
+		memcpy(&search_key, buf_itr, sizeof(int));
+		if(search_key == 0||key<=search_key) break;
+	}
 	//shift preexisting key pairs to the right.
 	char * updated_buf = (char*) malloc (PageFile::PAGE_SIZE);
 	memset(updated_buf, 0, PageFile::PAGE_SIZE);
 	
-	memcpy(updated_buf, buf, (getKeyCount()+1-pos)*NONLEAF_PAIR_SIZE);
-	buf = buf+NONLEAF_PAIR_SIZE;
-	memcpy(buf, updated_buf, (getKeyCount()+1-pos)*NONLEAF_PAIR_SIZE);
-	free (updated_buf);
-
+	memcpy(updated_buf, buffer, i);
+	memcpy(updated_buf+i, &key, sizeof(int));
+	memcpy(updated_buf+sizeof(int)+i,&pid,sizeof(PageId));
+	memcpy(updated_buf+NONLEAF_PAIR_SIZE+i,buffer+i,getKeyCount()*NONLEAF_PAIR_SIZE+8-i);
+	memcpy(buffer,updated_buf,PageFile::PAGE_SIZE);
+	free(updated_buf);
+	
 	//set new key
 	
-	buf = buffer+pos*NONLEAF_PAIR_SIZE+sizeof(PageId);
-	memcpy(buf,&key,sizeof(int));
-	buf = buf+sizeof(int);
-	memcpy(buf,&pid,sizeof(PageId));
 	return 0;
 }
+
 
 /*
  * Insert the (key, pid) pair to the node
@@ -353,27 +365,6 @@ RC BTNonLeafNode::insertAndSplit(int key, PageId pid, BTNonLeafNode& sibling, in
 	return 0;
 }
 
-RC BTNonLeafNode::locate(int searchKey, int& eid){
-	char* buf=buffer+sizeof(PageId);
-	int key=0,pos=0;
-	for (int i=0;i<BTNonLeafNode::getKeyCount();i++){
-		memcpy(&key, buf, sizeof(int));
-		if(key==searchKey){
-			eid = pos;
-			return 0;
-		}
-		
-		if(key > searchKey){
-			eid=pos;
-			return RC_NO_SUCH_RECORD;
-		}
-		buf+=NONLEAF_PAIR_SIZE;
-		pos++;
-		
-	}
-	eid = pos;
-	return -1;
-}
 
 /*
  * Given the searchKey, find the child-node pointer to follow and
@@ -385,20 +376,25 @@ RC BTNonLeafNode::locate(int searchKey, int& eid){
 RC BTNonLeafNode::locateChildPtr(int searchKey, PageId& pid)
 {
 	int pos,key;
-	BTNonLeafNode::locate(searchKey,pos);
 	//fetch key from buffer
 	memcpy(&key,buffer+pos*NONLEAF_PAIR_SIZE+sizeof(PageId),sizeof(int));
-	
-	//if the ID is bigger than found greatest smaller ID
-	if(searchKey >= key){
-		pid = *((PageId*)(buffer+pos*NONLEAF_PAIR_SIZE+sizeof(PageId)+sizeof(int)));
+	//need to iterate through the node
+	char* buf_itr = buffer + 8;
+	for(int i=8 ; i < getKeyCount()*NONLEAF_PAIR_SIZE+8; i +=NONLEAF_PAIR_SIZE, buf_itr +=8){
+		memcpy(&key, buf_itr, sizeof(int));
+		if(i==8 && searchKey < key){
+			memcpy(&pid, buffer, sizeof(PageId));
+			return 0;
+		}
+		else if(searchKey < key){
+			memcpy(&pid, buf_itr-4,sizeof(PageId));
+			return 0;
+		}
+		
 	}
-	else{
-		pid = *((PageId*)(buffer+pos*NONLEAF_PAIR_SIZE));
-	}
+	memcpy(&pid, buf_itr-4, sizeof(PageId));
 	return 0;
 }
-
 /*
  * Initialize the root node with (pid1, key, pid2).
  * @param pid1[IN] the first PageId to insert
@@ -411,9 +407,6 @@ RC BTNonLeafNode::initializeRoot(PageId pid1, int key, PageId pid2)
 	char* buf = buffer;
 	memset(buffer, 0, PageFile::PAGE_SIZE);
 	memcpy(buf, &pid1,sizeof(PageId));
-	buf = buf+sizeof(PageId);
-	memcpy(buf,&key,sizeof(int));
-	buf = buf+sizeof(int);
-	memcpy(buf,&pid2,sizeof(PageId));
-	return 0;
+	RC error = insert(key,pid2);
+	return error;
 }
