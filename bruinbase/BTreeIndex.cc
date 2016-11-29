@@ -259,7 +259,7 @@ RC BTreeIndex::readForward(IndexCursor& cursor, int& key, RecordId& rid)
 	error_code = l.readEntry(cursor.eid, key, rid);
 	if(error_code) return error_code;
 
-	if(l.getKeyCount() >= cursor.eid) cursor.eid++;
+	if(l.getKeyCount() > cursor.eid + 1) cursor.eid++;
 	else {
 		cursor.eid = 0;
 		cursor.pid = l.getNextNodePtr();
